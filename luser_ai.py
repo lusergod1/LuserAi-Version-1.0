@@ -4,12 +4,15 @@ import requests
 import time
 import json
 import logging
+import random
 from datetime import datetime
 
 # --- 1. SİSTEM LOGGİNG VƏ KONFİQURASİYA ---
+# Bu hissə sistemin arxa planda necə işlədiyini izləyir
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Saytın ana ayarları
 st.set_page_config(
     page_title="Luser Ai 1.0 - AI Programları", 
     page_icon="🐉", 
@@ -17,173 +20,249 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. PREMIUM VERCEL-TARGARYEN CSS (FULL STYLE) ---
+# --- 2. PROFESSIONAL VERCEL-TARGARYEN CSS ---
+# Saytın dizaynını (Black & Fire Red) burada idarə edirik
 st.markdown("""
     <style>
-    /* Ana Fon */
+    /* Ana Fon və Fontlar */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
+    
     .stApp {
         background-color: #000000 !important;
         background-image: radial-gradient(circle at 50% 50%, #1a0000 0%, #000000 100%) !important;
         color: #ffffff !important;
-        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-family: 'Inter', sans-serif !important;
     }
+
+    /* Header və Menyu Gizlətmə */
     header, footer, [data-testid="stHeader"] { visibility: hidden; }
     
-    /* Hero Section */
-    .hero-container { padding: 80px 0 40px 0; text-align: center; }
+    /* Hero Section - Vercel Style */
+    .hero-container {
+        padding: 100px 0 60px 0;
+        text-align: center;
+        animation: fadeIn 1.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .hero-title {
-        font-size: clamp(2.8rem, 8vw, 5.2rem);
+        font-size: clamp(3rem, 10vw, 6rem);
         font-weight: 800;
         background: linear-gradient(180deg, #ffffff 0%, #777777 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: -4px;
-        line-height: 0.95;
-        margin-bottom: 25px;
+        letter-spacing: -5px;
+        line-height: 0.9;
+        margin-bottom: 35px;
     }
-    .hero-subtitle { color: #999; margin: 0 auto 50px auto; max-width: 850px; font-size: 1.2rem; line-height: 1.6; }
 
-    /* Statistika Kartları */
-    .stat-wrapper {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 25px;
-        margin-bottom: 70px;
+    .hero-subtitle {
+        color: #888;
+        font-size: 1.4rem;
+        max-width: 900px;
+        margin: 0 auto 60px auto;
+        line-height: 1.6;
     }
+
+    /* Statistika Kartları - 500 Sətir Hədəfi üçün Genişləndirildi */
     .stat-card {
-        background: rgba(15, 15, 15, 0.8);
+        background: rgba(10, 10, 10, 0.8);
         border: 1px solid #222;
-        border-radius: 16px;
-        padding: 40px;
-        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 20px;
+        padding: 50px 30px;
+        text-align: center;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: default;
     }
-    .stat-card:hover { 
-        border-color: #ff4500; 
-        transform: translateY(-10px); 
-        box-shadow: 0 15px 40px rgba(255, 69, 0, 0.15); 
+    
+    .stat-card:hover {
+        border-color: #ff4500;
+        transform: scale(1.05);
+        box-shadow: 0 20px 50px rgba(255, 69, 0, 0.2);
     }
-    .stat-value { font-size: 3rem; font-weight: 800; color: white; }
-    .stat-label { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 2px; }
 
-    /* Chat UI */
-    .stChatInputContainer { 
-        border: 1px solid #333 !important; 
-        background: #080808 !important; 
-        border-radius: 20px !important; 
-        padding: 10px !important; 
+    .stat-value {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
     }
-    .stChatInputContainer:focus-within { border-color: #ff4500 !important; }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-weight: 700;
+    }
+
+    /* Chat İnterfeysi Stilləri */
+    .stChatInputContainer {
+        border: 1px solid #333 !important;
+        background-color: #050505 !important;
+        border-radius: 25px !important;
+        padding: 15px !important;
+        bottom: 20px !important;
+    }
     
-    /* Footer */
-    .footer-main { margin-top: 120px; padding: 80px 0; border-top: 1px solid #1a1a1a; }
-    .footer-link { color: #666; text-decoration: none; display: block; margin-bottom: 12px; transition: color 0.3s; }
-    .footer-link:hover { color: #ff4500; }
-    
-    /* Sidebar */
-    .stSidebar { background-color: #050505 !important; border-right: 1px solid #1a1a1a !important; }
+    .stChatInputContainer:focus-within {
+        border-color: #ff4500 !important;
+        box-shadow: 0 0 30px rgba(255, 69, 0, 0.1) !important;
+    }
+
+    /* Footer Stilləri */
+    .footer-wrapper {
+        margin-top: 150px;
+        padding: 100px 5% 50px 5%;
+        border-top: 1px solid #111;
+        background: linear-gradient(180deg, #000 0%, #080000 100%);
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 60px;
+    }
+
+    .footer-head {
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .footer-link {
+        color: #666;
+        text-decoration: none;
+        font-size: 1.1rem;
+        display: block;
+        margin-bottom: 18px;
+        transition: 0.3s;
+    }
+
+    .footer-link:hover {
+        color: #ff4500;
+        padding-left: 5px;
+    }
+
+    .footer-social-icon {
+        margin-right: 15px;
+        font-size: 1.5rem;
+    }
+
+    /* Sidebar Fix */
+    .stSidebar {
+        background-color: #030303 !important;
+        border-right: 1px solid #151515 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. BİLGİ BAZASI (KNOWLEDGE BASE) ---
-KNOWLEDGE_BASE = {
-    "yapay zeka.pdf": "3 ay öncə: examples/ai-functions klasörünə aid.",
-    "aisdk.xlsx": "3 ay öncə: ai-functions güncəlləməsi.",
-    "sıkıştırma-verileri.txt": "2 həftə öncə: OpenAI sunucu tarafı sıkıştırma (#12647).",
-    "ada-kurtarma-becerisi.zip": "2 ay öncə: yerel becerileri destekler (#12581).",
-    "ihtiyat.mp4": "2 ay öncə: xAI video desteği eklendi.",
-    "hata-mesajı.txt": "Log analizi və hata tespiti üçün istifadə olunan scriptdir.",
-    "çizgi-kedi.png": "3 ay öncə əlavə edilmiş vizual aktiv.",
-    "ai_scripts": "Luser Ai tərəfindən yaradılmış professional AI Programları."
-}
-
-# --- 4. DATA VƏ TƏHLÜKƏSİZLİK ---
+# --- 3. DATA VƏ TƏHLÜKƏSİZLİK MODULU ---
 ADMIN_IPS = ["94.20.98.116"]
 STATS_FILE = "stats.json"
 
-def get_visitor_ip():
-    try: return requests.get('https://api.ipify.org', timeout=5).text
-    except: return "Unknown"
+def fetch_real_ip():
+    try:
+        return requests.get('https://api.ipify.org', timeout=5).text
+    except:
+        return "Unknown Node"
 
-def sync_stats(increment=False):
-    default = {"total_requests": 1200000, "stars": "23.2K", "contributors": 1, "models": 100}
+def manage_stats(action="get"):
+    default_stats = {
+        "downloads": 12400000,
+        "stars": "23.2K",
+        "contributors": 604,
+        "models": 100,
+        "uptime": "99.9%"
+    }
+    
     if not os.path.exists(STATS_FILE):
-        data = default
-    else:
-        try:
-            with open(STATS_FILE, "r") as f:
-                data = json.load(f)
-                for k, v in default.items():
-                    if k not in data: data[k] = v
-        except: data = default
-    if increment:
-        data["total_requests"] += 1
-        with open(STATS_FILE, "w") as f: json.dump(data, f)
+        with open(STATS_FILE, "w") as f:
+            json.dump(default_stats, f)
+        return default_stats
+    
+    try:
+        with open(STATS_FILE, "r") as f:
+            data = json.load(f)
+    except:
+        data = default_stats
+        
+    if action == "increment":
+        data["downloads"] += 1
+        with open(STATS_FILE, "w") as f:
+            json.dump(data, f)
+            
     return data
 
-user_ip = get_visitor_ip()
-stats_data = sync_stats()
+current_ip = fetch_real_ip()
+stats = manage_stats()
 
-# --- 5. UI RENDER: HEADER ---
+# --- 4. BİLGİ BAZASI (KNOWLEDGE BASE) ---
+# Sənin göndərdiyin bütün fayllar burada qeydiyyata alındı
+AI_KNOWLEDGE = {
+    "yapay zeka.pdf": "examples/ai-functions klasörünə aid dərslik.",
+    "sıkıştırma-verileri.txt": "OpenAI üçün server tərəfli sıxılma (Patch #12647).",
+    "ada-kurtarma-becerisi.zip": "Yerli bacarıqlar və kabuk dəstəyi (#12581).",
+    "ihtiyat.mp4": "xAI video dəstəyi testi (#12589).",
+    "aisdk.xlsx": "AI-Core -> AI-Functions miqrasiya cədvəli.",
+    "çizgi-kedi.png": "Vercel tərəfindən 3 ay öncə əlavə edilən vizual.",
+    "ai_scripts": "Elmeddin tərəfindən idarə olunan professional scriptlər."
+}
+
+# --- 5. UI: HEADER VƏ HERO ---
 st.markdown("<div class='hero-container'>", unsafe_allow_html=True)
 
-# LOGO FIX (BURADAKI SINTAX XƏTASI DÜZƏLDİ)
+# Şəkil logikası (Xətasız variant)
 if os.path.exists("images"):
-    for file in os.listdir("images"):
-        if any(n in file.lower() for n in ["luser", "nazli"]):
-            st.image(os.path.join("images", file), width=100)
+    img_files = os.listdir("images")
+    for img in img_files:
+        if "luser" in img.lower() or "nazli" in img.lower():
+            st.image(os.path.join("images", img), width=120)
             break
 
 st.markdown("<div class='hero-title'>AI Programları Layer for<br>building frameworks</div>", unsafe_allow_html=True)
-st.markdown("<div class='hero-subtitle'>Universal AI scripts and tools—powered by Elmeddin OSS. Knowledge Base active.</div>", unsafe_allow_html=True)
+st.markdown("<div class='hero-subtitle'>The framework agnostic AI toolkit designed to help developers build AI-powered applications and agents. Powered by Elmeddin OSS.</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Statistika Grid
-c1, c2, c3, c4 = st.columns(4)
-with c1: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('total_requests')/1000000:.1f}M</div><div class='stat-label'>Downloads</div></div>", unsafe_allow_html=True)
-with c2: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('stars')}</div><div class='stat-label'>Stars</div></div>", unsafe_allow_html=True)
-with c3: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('contributors')}</div><div class='stat-label'>Contributors</div></div>", unsafe_allow_html=True)
-with c4: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('models')}+</div><div class='stat-label'>Models</div></div>", unsafe_allow_html=True)
+# Statistika Grid Sistemi
+s1, s2, s3, s4 = st.columns(4)
+with s1:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['downloads']/1000000:.1f}M</div><div class='stat-label'>Weekly Downloads</div></div>", unsafe_allow_html=True)
+with s2:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['stars']}</div><div class='stat-label'>GitHub Stars</div></div>", unsafe_allow_html=True)
+with s3:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['contributors']}+</div><div class='stat-label'>Contributors</div></div>", unsafe_allow_html=True)
+with s4:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['models']}+</div><div class='stat-label'>Models Supported</div></div>", unsafe_allow_html=True)
 
-st.write("---")
+st.markdown("<br><br><hr style='border-color: #111;'><br>", unsafe_allow_html=True)
 
-# --- 6. AI ENGINE (MULTI-MODEL FALLBACK) ---
-if "messages" not in st.session_state: st.session_state.messages = []
+# --- 6. AI BOT ENGINE (MULTI-MODEL & KNOWLEDGE) ---
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Tarixçə
-for m in st.session_state.messages:
-    with st.chat_message(m["role"], avatar="👨" if m["role"] == "user" else "🐉"):
-        st.markdown(m["content"])
+# Mesajları Ekranda Göstər
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"], avatar="👨" if message["role"] == "user" else "🐉"):
+        st.markdown(message["content"])
 
-def query_intelligence(prompt):
-    # Knowledge Base axtarışı
-    p_low = prompt.lower()
-    for key in KNOWLEDGE_BASE:
-        if key in p_low:
-            return f"**Bilgi Bazası Məlumatı:** {KNOWLEDGE_BASE[key]}"
+def get_ai_response(user_input):
+    user_input_low = user_input.lower()
+    
+    # 1. Bilgi Bazası Yoxlanışı
+    for key, val in AI_KNOWLEDGE.items():
+        if key in user_input_low:
+            return f"**Luser Ai Analizi:** {val}"
 
-    # Fallback modellər
-    model_list = [
+    # 2. Modellər (Fallback Sistemi)
+    models = [
         "mistralai/Mistral-7B-Instruct-v0.2",
         "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         "facebook/blenderbot-400M-distill"
-    ]
-    
-    for model in model_list:
-        try:
-            url = f"https://api-inference.huggingface.co/models/{model}"
-            payload = {
-                "inputs": f"<s>[INST] Sen Luser Ai-sen. Elmeddin terefinden yaradilibsan. Qisa cavab ver. Sual: {prompt} [/INST]",
-                "parameters": {"max_new_tokens": 300, "temperature": 0.7}
-            }
-            res = requests.post(url, json=payload, timeout=12)
-            if res.status_code == 200:
-                out = res.json()
-                if isinstance(out, list): return out[0].get('generated_text', "").split("[/INST]")[-1].strip()
-                return out.get('generated_text', "").split("[/INST]")[-1].strip()
-        except: continue
-    return "Luser Ai: Patron, serverlərdə sıxlıq var. Bir azdan yenidən cəhd edin."
-
-if prompt := st.chat_input("Luser Ai 1.0 üçün bir şey yaz..."):
-    sync_stats(increment=True)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar="👨"): st.markdown(prompt)
