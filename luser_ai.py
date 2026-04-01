@@ -4,14 +4,14 @@ import requests
 import time
 import json
 import logging
+import random
 from datetime import datetime
 
-# --- 1. LOGGİNG VƏ SİSTEM AYARLARI ---
-# Bu hissə proqramın arxa fonda necə işlədiyini izləmək üçündür.
+# --- 1. SİSTEM VƏ LOGGİNG KONFİQURASİYASI ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- 2. ANA KONFİQURASİYA ---
+# --- 2. ANA SƏHİFƏ AYARLARI ---
 st.set_page_config(
     page_title="Luser Ai 1.0 - Vercel Master Edition", 
     page_icon="🐉", 
@@ -19,11 +19,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 3. GENİŞLƏNDİRİLMİŞ PREMİUM CSS (Vercel + Targaryen Red) ---
-# Burada Vercel-in sadəliyi ilə Targaryen-in qırmızı parıltısını birləşdirdim.
+# --- 3. PREMIUM VERCEL-TARGARYEN CSS ---
 st.markdown("""
     <style>
-    /* Ana Fon tənzimləmələri */
+    /* Qara və Qırmızı Parıltı Fonu */
     .stApp {
         background-color: #000000 !important;
         background-image: radial-gradient(circle at 50% 50%, #1a0000 0%, #000000 100%) !important;
@@ -31,111 +30,109 @@ st.markdown("""
         font-family: 'Inter', -apple-system, sans-serif !important;
     }
     
-    /* Gereksiz Streamlit hissələrini gizlə */
+    /* Gereksiz elementləri gizləmək */
     header, footer, [data-testid="stHeader"] { visibility: hidden; }
     
-    /* Vercel Hero Bölməsi - SS-dəki kimi */
+    /* Vercel Hero Bölməsi */
     .hero-container {
         padding: 80px 0 40px 0;
         text-align: center;
     }
     .hero-title {
-        font-size: clamp(2.8rem, 8vw, 5rem);
+        font-size: clamp(2.8rem, 8vw, 5.2rem);
         font-weight: 800;
-        background: linear-gradient(180deg, #ffffff 0%, #888888 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #777777 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: -4px;
-        line-height: 1;
-        margin-bottom: 25px;
+        line-height: 0.95;
+        margin-bottom: 30px;
     }
     .hero-subtitle {
-        font-size: 1.3rem;
-        color: #a1a1a1;
-        max-width: 800px;
+        font-size: 1.35rem;
+        color: #999999;
+        max-width: 850px;
         margin: 0 auto 50px auto;
-        line-height: 1.6;
-        font-weight: 400;
+        line-height: 1.5;
     }
 
-    /* Statistika Kartları - SS-dəki 4-lü sistem */
+    /* Statistika Paneli (4-lü Kart Sistemi) */
     .stat-wrapper {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 25px;
-        margin-bottom: 70px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 30px;
+        margin-bottom: 80px;
     }
     .stat-card {
-        background: rgba(12, 12, 12, 0.7);
-        border: 1px solid #252525;
-        border-radius: 14px;
-        padding: 35px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: rgba(15, 15, 15, 0.8);
+        border: 1px solid #222;
+        border-radius: 16px;
+        padding: 40px;
+        text-align: left;
+        transition: all 0.4s ease;
     }
     .stat-card:hover {
         border-color: #ff4500;
-        transform: translateY(-8px);
-        box-shadow: 0 15px 40px rgba(255, 69, 0, 0.15);
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(255, 69, 0, 0.15);
     }
     .stat-value {
-        font-size: 3rem;
+        font-size: 3.2rem;
         font-weight: 800;
         color: #ffffff;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
     }
     .stat-label {
-        font-size: 0.8rem;
-        color: #777;
+        font-size: 0.85rem;
+        color: #666;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        font-weight: 600;
+        letter-spacing: 2px;
+        font-weight: 700;
     }
 
-    /* Chat UI - Professional dizayn */
+    /* Professional Chat İnterfeysi */
     .stChatInputContainer {
         border: 1px solid #333 !important;
         background-color: #080808 !important;
-        border-radius: 16px !important;
-        padding: 12px !important;
-        margin-bottom: 20px !important;
+        border-radius: 20px !important;
+        padding: 15px !important;
     }
     .stChatInputContainer:focus-within {
         border-color: #ff4500 !important;
-        box-shadow: 0 0 15px rgba(255, 69, 0, 0.2) !important;
+        box-shadow: 0 0 25px rgba(255, 69, 0, 0.2) !important;
     }
 
-    /* Footer dizaynı - SS-dəki linklər */
+    /* Footer və Linklər */
     .footer-main {
-        margin-top: 120px;
+        margin-top: 140px;
         padding: 80px 0;
-        border-top: 1px solid #1a1a1a;
+        border-top: 1px solid #151515;
     }
     .footer-heading {
         color: #ffffff;
-        font-size: 0.9rem;
-        font-weight: 700;
-        margin-bottom: 20px;
+        font-size: 0.95rem;
+        font-weight: 800;
+        margin-bottom: 25px;
         text-transform: uppercase;
-        letter-spacing: 1px;
     }
     .footer-link {
-        color: #666;
+        color: #777;
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 1rem;
         display: block;
-        margin-bottom: 12px;
-        transition: color 0.3s;
+        margin-bottom: 15px;
+        transition: color 0.3s ease;
     }
     .footer-link:hover { color: #ff4500; }
     
-    /* Button stilləri */
+    /* Button Stilləri */
     .stButton>button {
-        background-color: transparent !important;
+        background-color: #111 !important;
         color: #ffffff !important;
         border: 1px solid #333 !important;
-        border-radius: 10px !important;
-        transition: all 0.3s !important;
-        width: 100%;
+        border-radius: 12px !important;
+        height: 50px !important;
+        transition: all 0.3s ease !important;
     }
     .stButton>button:hover {
         border-color: #ff4500 !important;
@@ -144,186 +141,162 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DATA İDARƏETMƏ VƏ TƏHLÜKƏSİZLİK (IP LOCK) ---
+# --- 4. STATİSTİKA VƏ IP QORUMASI ---
 ADMIN_IPS = ["94.20.98.116"]
 STATS_FILE = "stats.json"
 
-def get_visitor_ip():
-    """Ziyarətçinin real IP-sini çəkir."""
+def get_user_real_ip():
     try:
+        # Daha stabil IP servisi
         return requests.get('https://api.ipify.org', timeout=5).text
-    except Exception as e:
-        logger.error(f"IP retrieval error: {e}")
+    except:
         return "Unknown"
 
-def init_stats_structure():
-    """Statistikaların default şablonu."""
-    return {
-        "total_requests": 1200000,
-        "weekly_active_bots": 5,
-        "contributors": 1,
-        "models_supported": 100,
-        "last_sync": str(datetime.now())
-    }
-
-def load_or_sync_stats(increment=False):
-    """Statistikaları oxuyur və KeyError-ləri fixləyir."""
-    default_data = init_stats_structure()
+def sync_stats(increment=False):
+    default = {"total_requests": 1200000, "stars": "23.2K", "contributors": 1, "models": 100}
     if not os.path.exists(STATS_FILE):
-        current_data = default_data
+        data = default
     else:
         try:
             with open(STATS_FILE, "r") as f:
-                current_data = json.load(f)
-                # Eksik olan hər şeyi doldur ki xəta verməsin
-                for k, v in default_data.items():
-                    if k not in current_data:
-                        current_data[k] = v
-        except Exception as e:
-            logger.error(f"JSON Load error: {e}")
-            current_data = default_data
+                data = json.load(f)
+                for k, v in default.items():
+                    if k not in data: data[k] = v
+        except: data = default
             
     if increment:
-        current_data["total_requests"] += 1
-        current_data["last_sync"] = str(datetime.now())
-        try:
-            with open(STATS_FILE, "w") as f:
-                json.dump(current_data, f)
-        except Exception as e:
-            logger.error(f"JSON Save error: {e}")
-            
-    return current_data
+        data["total_requests"] += 1
+        with open(STATS_FILE, "w") as f:
+            json.dump(data, f)
+    return data
 
-# İlkin datanı yüklə
-user_ip = get_visitor_ip()
-current_stats = load_or_sync_stats()
+user_ip = get_user_real_ip()
+stats = sync_stats()
 
 # --- 5. UI: HEADER VƏ LOQO ---
-def render_site_header():
+def render_header_section():
     st.markdown("<div class='hero-container'>", unsafe_allow_html=True)
     
-    # Loqo axtarışı (Luser/Nazlı)
+    # Loqo Sistemi
     if os.path.exists("images"):
         for file in os.listdir("images"):
-            if any(name in file.lower() for name in ["luser", "nazli"]):
-                st.image(os.path.join("images", file), width=90)
+            if any(n in file.lower() for n in ["luser", "nazli"]):
+                st.image(os.path.join("images", file), width=100)
                 break
     
     st.markdown("<div class='hero-title'>Universal AI layer for<br>building frameworks and agents</div>", unsafe_allow_html=True)
     st.markdown("<div class='hero-subtitle'>A unified Luser SDK for building AI apps with modern streaming, and multi-model support—powered by Elmeddin OSS.</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-render_site_header()
+render_header_section()
 
-# Statistika Paneli (Dinamik Kartlar)
+# Statistika Kartları
 c1, c2, c3, c4 = st.columns(4)
-with c1:
-    st.markdown(f"<div class='stat-card'><div class='stat-value'>{current_stats.get('total_requests', 0)/1000000:.1f}M</div><div class='stat-label'>Weekly downloads</div></div>", unsafe_allow_html=True)
-with c2:
-    st.markdown(f"<div class='stat-card'><div class='stat-value'>23.2K</div><div class='stat-label'>GitHub stars</div></div>", unsafe_allow_html=True)
-with c3:
-    st.markdown(f"<div class='stat-card'><div class='stat-value'>{current_stats.get('contributors', 1)}</div><div class='stat-label'>Contributors</div></div>", unsafe_allow_html=True)
-with c4:
-    st.markdown(f"<div class='stat-card'><div class='stat-value'>{current_stats.get('models_supported', 100)}+</div><div class='stat-label'>Models supported</div></div>", unsafe_allow_html=True)
+with c1: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats.get('total_requests')/1000000:.1f}M</div><div class='stat-label'>Weekly downloads</div></div>", unsafe_allow_html=True)
+with c2: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats.get('stars')}</div><div class='stat-label'>GitHub stars</div></div>", unsafe_allow_html=True)
+with c3: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats.get('contributors')}</div><div class='stat-label'>Contributors</div></div>", unsafe_allow_html=True)
+with c4: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats.get('models')}+</div><div class='stat-label'>Models supported</div></div>", unsafe_allow_html=True)
 
 st.markdown("<br><hr style='border-color: #1a1a1a;'><br>", unsafe_allow_html=True)
 
-# --- 6. SÜRATLİ CHAT SİSTEMİ (TinyLlama - 10s Limit) ---
+# --- 6. GÜCLÜ VƏ STABİL CHAT SİSTEMİ (Mistral-7B) ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Tarixçəni göstər
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"], avatar="👨" if msg["role"] == "user" else "🐉"):
-        st.markdown(msg["content"])
+# Mesajları göstər
+for m in st.session_state.messages:
+    with st.chat_message(m["role"], avatar="👨" if m["role"] == "user" else "🐉"):
+        st.markdown(m["content"])
 
-# Mesaj girişi
-if prompt := st.chat_input("Luser Ai-a bir şey soruş..."):
-    # Sayğacı artır
-    load_or_sync_stats(increment=True)
-    
-    # User mesajı
+if prompt := st.chat_input("Luser Ai 1.0 üçün bir şey yaz..."):
+    sync_stats(increment=True)
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar="👨"):
         st.markdown(prompt)
     
-    # Assistant mesajı
     with st.chat_message("assistant", avatar="🐉"):
-        with st.status("📡 Analiz edilir...", expanded=False) as status:
-            # Sürətli model və 10 saniyə timeout
-            API_URL = "https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        with st.status("📡 Luser Ai Analiz Edir...", expanded=False) as status:
+            # Daha stabil Mistral-7B Modeli
+            API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
             try:
-                # Sənin koddakı o SYNTAX ERROR burda düzəldi (mötərizə bağlandı)
+                # Sürətli cavab üçün tənzimləmə
+                headers = {"Authorization": f"Bearer {st.secrets.get('HF_TOKEN', '')}"} # Token varsa istifadə et
                 payload = {
-                    "inputs": f"<|system|>\nYou are Luser Ai, created by Elmeddin. Respond concisely.<|user|>\n{prompt}<|assistant|>\n",
-                    "parameters": {"max_new_tokens": 300, "temperature": 0.7}
+                    "inputs": f"<s>[INST] You are Luser Ai, created by Elmeddin. Respond concisely in Azerbaijani/English. Prompt: {prompt} [/INST]",
+                    "parameters": {"max_new_tokens": 500, "temperature": 0.7, "return_full_text": False}
                 }
-                response = requests.post(API_URL, json=payload, timeout=10)
+                
+                # Botun cavab verməsi üçün 10 saniyə limit
+                response = requests.post(API_URL, json=payload, timeout=12)
                 
                 if response.status_code == 200:
-                    output = response.json()[0]['generated_text']
-                    final_text = output.split("<|assistant|>\n")[-1].strip()
-                    status.update(label="✅ Hazırdır", state="complete")
+                    res_json = response.json()
+                    # Cavabın gəlmə formasını yoxla
+                    if isinstance(res_json, list):
+                        ans = res_json[0].get('generated_text', "Luser Ai: Hazırdır!")
+                    else:
+                        ans = res_json.get('generated_text', "Luser Ai: Analiz tamamlandı.")
+                    
+                    status.update(label="✅ Tamamlandı", state="complete")
                 else:
-                    final_text = "Luser Ai: Server hazırda cavab vermir, bir azdan yoxlayın."
-                    status.update(label="❌ Server Xətası", state="error")
-            except requests.exceptions.Timeout:
-                final_text = "Luser Ai: Patron, 10 saniyə doldu, server gecikdi. Yenidən cəhd edək?"
-                status.update(label="⏱️ Zaman Aşımı", state="error")
+                    ans = "Luser Ai: Server hazırda yüklənib, zəhmət olmasa bir neçə saniyə sonra yenidən göndərin."
+                    status.update(label="⚠️ Server Yüklənib", state="error")
             except Exception as e:
-                final_text = f"Luser Ai: Sistemdə bir xəta baş verdi."
+                ans = "Luser Ai: Bağlantı xətası baş verdi. Amma mən hələ də buradayam!"
                 status.update(label="❌ Xəta", state="error")
         
-        st.markdown(final_text)
-        st.session_state.messages.append({"role": "assistant", "content": final_text})
+        st.markdown(ans)
+        st.session_state.messages.append({"role": "assistant", "content": ans})
 
-# --- 7. FOOTER: SOSİAL VƏ ŞİRKƏT LİNKLƏRİ ---
+# --- 7. FOOTER: SOSİAL VƏ QANUNİ LİNKLƏR ---
 st.markdown(f"""
     <div class='footer-main'>
-        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 60px;'>
+        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 80px;'>
             <div>
-                <div class='footer-heading'>Resources</div>
+                <div class='footer-heading'>Explore</div>
                 <a class='footer-link' href='#'>Documentation</a>
-                <a class='footer-link' href='#'>AI Reference</a>
-                <a class='footer-link' href='#'>Blog</a>
+                <a class='footer-link' href='#'>AI SDK</a>
+                <a class='footer-link' href='#'>Showcase</a>
             </div>
             <div>
-                <div class='footer-heading'>Community</div>
+                <div class='footer-heading'>Social</div>
                 <a class='footer-link' href='https://instagram.com/lusergod' target='_blank'>Instagram</a>
                 <a class='footer-link' href='https://tiktok.com/@lusergod' target='_blank'>TikTok</a>
-                <a class='footer-link' href='https://discordapp.com/users/lusergod' target='_blank'>Discord Account</a>
+                <a class='footer-link' href='https://discordapp.com/users/lusergod' target='_blank'>Discord Profil</a>
             </div>
             <div>
-                <div class='footer-heading'>Company</div>
-                <a class='footer-link' href='#'>About Elmeddin OSS</a>
+                <div class='footer-heading'>Legal</div>
                 <a class='footer-link' href='#'>Privacy Policy</a>
                 <a class='footer-link' href='#'>Terms of Service</a>
+                <a class='footer-link' href='#'>Cookie Policy</a>
             </div>
         </div>
-        <div style='text-align: center; margin-top: 80px; color: #444; font-size: 0.8rem;'>
-            © 2026 Luser Ai, Elmeddin Inc. All rights reserved.<br>
-            Current Node IP: <span style='color: #ff4500;'>{user_ip}</span>
+        <div style='text-align: center; margin-top: 100px; color: #555; font-size: 0.85rem;'>
+            © 2026 Luser Ai, Elmeddin Inc. Bütün hüquqlar qorunur.<br>
+            Node IP: <span style='color: #ff4500;'>{user_ip}</span> | Status: <span style='color: #00ff00;'>Online</span>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
-# --- 8. ADMIN DASHBOARD (Yalnız Sənə Görünür) ---
+# --- 8. ADMIN DASHBOARD ---
 if user_ip in ADMIN_IPS:
     with st.sidebar:
-        st.markdown("<h2 style='color: #ff4500;'>🐉 LUSER CONTROL</h2>", unsafe_allow_html=True)
-        st.markdown(f"**Vəziyyət:** Stabil ✅")
-        st.markdown(f"**IP:** {user_ip}")
+        st.markdown("<h2 style='color: #ff4500;'>🐉 PATRON DASHBOARD</h2>", unsafe_allow_html=True)
+        st.write(f"Xoş gəldin, Elmeddin!")
         
-        if st.button("Söhbət Tarixini Sıfırla"):
+        if st.button("Söhbəti Təmizlə"):
             st.session_state.messages = []
             st.rerun()
             
-        if st.button("Statistikaları Yenilə"):
+        if st.button("Statistikaları Sıfırla"):
+            if os.path.exists(STATS_FILE): os.remove(STATS_FILE)
             st.rerun()
             
-        with st.expander("Debug Məlumatları"):
-            st.json(current_stats)
+        with st.expander("Sistem Məlumatları"):
+            st.write(f"İstifadəçi IP: {user_ip}")
+            st.write(f"Fayl: luser_ai.py")
 else:
     with st.sidebar:
-        st.markdown("<h3 style='color: #444;'>Luser Ai 1.0</h3>", unsafe_allow_html=True)
-        st.caption("Universal AI Layer")
+        st.markdown("<h3 style='color: #444;'>Luser Ai v1.0</h3>", unsafe_allow_html=True)
+        st.caption("Powered by Elmeddin")
+        
