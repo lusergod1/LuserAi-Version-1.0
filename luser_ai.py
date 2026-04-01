@@ -3,177 +3,237 @@ import os
 import requests
 import time
 import json
+import logging
+from datetime import datetime
 
-# --- 1. KONFİQURASİYA VƏ BRENDİNQ (Köhnə və Yeni Birlikdə) ---
+# --- 1. SİSTEM VƏ LOGGİNG AYARLARI ---
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# --- 2. KONFİQURASİYA VƏ BRENDİNQ ---
 st.set_page_config(
-    page_title="Luser Ai 1.0 - Vercel Edition", 
+    page_title="Luser Ai 1.0 - Vercel Master Edition", 
     page_icon="🐉", 
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. PREMİUM DİZAYN (Vercel + Targaryen Red) ---
-# Burada həm sən istədiyin SS-dəki Vercel stili, həm də köhnə Targaryen parıltısı birləşib.
+# --- 3. EXTENDED CSS (Vercel Dark + Targaryen Glow) ---
 st.markdown("""
     <style>
+    /* Ana Fon və Rəng Palitrası */
     .stApp {
         background-color: #000000 !important;
-        background-image: radial-gradient(circle, #2a0000 0%, #000000 100%) !important;
-        color: white !important;
-    }
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-
-    /* Vercel Style Titles */
-    .hero-title {
-        font-size: clamp(2.5rem, 6vw, 4rem);
-        font-weight: 800;
-        text-align: center;
-        color: white;
-        text-shadow: 0 0 20px rgba(255, 69, 0, 0.4);
-        letter-spacing: -2px;
-        padding-top: 40px;
-    }
-    .hero-subtitle {
-        font-size: 1.2rem;
-        text-align: center;
-        color: #888;
-        margin-bottom: 40px;
+        background-image: radial-gradient(circle at 50% 50%, #1a0000 0%, #000000 100%) !important;
+        color: #ffffff !important;
+        font-family: 'Inter', -apple-system, system-ui, sans-serif !important;
     }
     
-    /* Stat Cards (Vercel Style) */
-    .stat-card {
-        background: rgba(15, 15, 15, 0.8);
-        border: 1px solid #333;
-        border-radius: 12px;
-        padding: 25px;
-        text-align: left;
-        transition: border-color 0.3s;
+    /* Standart Streamlit Elementlərini Gizlə */
+    header, footer, [data-testid="stHeader"] { visibility: hidden; }
+    
+    /* Vercel Hero Bölməsi */
+    .hero-container {
+        padding: 60px 0;
+        text-align: center;
     }
-    .stat-card:hover { border-color: #ff4500; }
-    .stat-value { font-size: 2.8rem; font-weight: 700; color: white; }
-    .stat-label { font-size: 0.9rem; color: #666; text-transform: uppercase; }
+    .hero-title {
+        font-size: clamp(2.5rem, 7vw, 4.5rem);
+        font-weight: 800;
+        background: linear-gradient(180deg, #ffffff 0%, #a1a1a1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -3px;
+        line-height: 1.1;
+        margin-bottom: 20px;
+    }
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: #888888;
+        max-width: 700px;
+        margin: 0 auto 40px auto;
+        line-height: 1.6;
+    }
 
-    /* Footer Links */
-    .footer-container { margin-top: 80px; border-top: 1px solid #222; padding: 40px 0; }
-    .footer-link { color: #888; text-decoration: none; margin-bottom: 8px; display: block; }
+    /* Statistika Kartları */
+    .stat-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 60px;
+    }
+    .stat-card {
+        background: rgba(10, 10, 10, 0.6);
+        border: 1px solid #222;
+        border-radius: 12px;
+        padding: 30px;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        border-color: #ff4500;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(255, 69, 0, 0.1);
+    }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 5px;
+    }
+
+    /* Chat UI Tənzimləmələri */
+    .stChatInputContainer {
+        border: 1px solid #333 !important;
+        background-color: #050505 !important;
+        border-radius: 12px !important;
+        padding: 10px !important;
+    }
+    .stChatInputContainer:focus-within {
+        border-color: #ff4500 !important;
+    }
+
+    /* Footer Dizaynı */
+    .footer-main {
+        margin-top: 100px;
+        padding: 60px 0;
+        border-top: 1px solid #222;
+    }
+    .footer-link {
+        color: #888;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
     .footer-link:hover { color: #ff4500; }
-
-    /* Chat UI */
-    .stChatInputContainer { border: 1px solid #ff4500 !important; border-radius: 15px !important; }
+    
+    /* Button Customization */
+    .stButton>button {
+        background-color: transparent !important;
+        color: #ff4500 !important;
+        border: 1px solid #ff4500 !important;
+        border-radius: 8px !important;
+        width: 100%;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. SİSTEM FUNKSİYALARI (Heç nə silinmədi) ---
-ADMIN_IPS = ["94.20.98.116"] 
+# --- 4. DATA İDARƏETMƏ VƏ TƏHLÜKƏSİZLİK ---
+ADMIN_IPS = ["94.20.98.116"]
 STATS_FILE = "stats.json"
 
-def get_real_ip():
-    try: return requests.get('https://api.ipify.org').text
-    except: return "Unknown"
+def get_visitor_ip():
+    """Ziyarətçinin real IP ünvanını qaytarır."""
+    try:
+        return requests.get('https://api.ipify.org', timeout=5).text
+    except Exception as e:
+        logger.error(f"IP retrieval error: {e}")
+        return "Unknown"
 
-def manage_stats(increment=False):
+def init_stats():
+    """Statistikaları ilkin vəziyyətə gətirir və KeyError-in qarşısını alır."""
+    return {
+        "total_requests": 1200000,
+        "weekly_active_bots": 5,
+        "contributors": 1,
+        "models_supported": 100,
+        "last_updated": str(datetime.now())
+    }
+
+def load_or_update_stats(increment=False):
+    """Fayldan statistikaları oxuyur və açarları yoxlayır."""
+    default = init_stats()
     if not os.path.exists(STATS_FILE):
-        data = {"total_requests": 1200000, "active_bots": 1, "contributors": 1, "models": 100}
+        data = default
     else:
         try:
-            with open(STATS_FILE, "r") as f: data = json.load(f)
-        except: data = {"total_requests": 1200000, "active_bots": 1, "contributors": 1, "models": 100}
+            with open(STATS_FILE, "r") as f:
+                data = json.load(f)
+                # Eksik açarları yoxla (KeyError Fix)
+                for key in default:
+                    if key not in data:
+                        data[key] = default[key]
+        except Exception as e:
+            logger.error(f"Stats load error: {e}")
+            data = default
+            
     if increment:
         data["total_requests"] += 1
-        with open(STATS_FILE, "w") as f: json.dump(data, f)
+        data["last_updated"] = str(datetime.now())
+        try:
+            with open(STATS_FILE, "w") as f:
+                json.dump(data, f)
+        except Exception as e:
+            logger.error(f"Stats save error: {e}")
+            
     return data
 
-current_user_ip = get_real_ip()
-stats = manage_stats()
+# Məlumatları yüklə
+current_ip = get_visitor_ip()
+stats_data = load_or_update_stats()
 
-# --- 4. GİRİŞ EKRANI (Yeni Dizayn Köhnənin Üstünə) ---
-st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-
-# Loqo Funksiyası (Təkrarlananlar silindi, ən yaxşısı qaldı)
-def display_logo():
+# --- 5. LOGO VƏ BAŞLIQ (UI) ---
+def render_header():
+    st.markdown("<div class='hero-container'>", unsafe_allow_html=True)
+    
+    # Loqo axtarışı
+    logo_found = False
     if os.path.exists("images"):
-        for f in os.listdir("images"):
-            if any(x in f.lower() for x in ["luser", "nazli"]):
-                st.image(os.path.join("images", f), width=70)
-                return
-display_logo()
+        for file in os.listdir("images"):
+            if any(name in file.lower() for name in ["luser", "nazli"]):
+                st.image(os.path.join("images", file), width=80)
+                logo_found = True
+                break
+    
+    st.markdown("<div class='hero-title'>Universal AI layer for<br>building frameworks and agents</div>", unsafe_allow_html=True)
+    st.markdown("<div class='hero-subtitle'>A unified Luser SDK for building AI apps with modern streaming, and multi-model support—powered by Elmeddin OSS.</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("<div class='hero-title'>Universal AI layer for<br>building frameworks and agents</div>", unsafe_allow_html=True)
-st.markdown("<div class='hero-subtitle'>A unified Luser SDK for building AI apps with modern streaming,<br>fallbacks, and multi-model support—powered by Elmeddin OSS.</div>", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+render_header()
 
-# Statistika (Vercel Style)
-c1, c2, c3, c4 = st.columns(4)
-with c1: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['total_requests']/1000000:.1f}M</div><div class='stat-label'>Weekly downloads</div></div>", unsafe_allow_html=True)
-with c2: st.markdown(f"<div class='stat-card'><div class='stat-value'>23.2K</div><div class='stat-label'>GitHub stars</div></div>", unsafe_allow_html=True)
-with c3: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['contributors']}+</div><div class='stat-label'>Contributors</div></div>", unsafe_allow_html=True)
-with c4: st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats['models']}+</div><div class='stat-label'>Models supported</div></div>", unsafe_allow_html=True)
+# Statistika Kartları (Dinamik)
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('total_requests', 0)/1000000:.1f}M</div><div class='stat-label'>Weekly downloads</div></div>", unsafe_allow_html=True)
+with col2:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>23.2K</div><div class='stat-label'>GitHub stars</div></div>", unsafe_allow_html=True)
+with col3:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('contributors', 1)}</div><div class='stat-label'>Contributors</div></div>", unsafe_allow_html=True)
+with col4:
+    st.markdown(f"<div class='stat-card'><div class='stat-value'>{stats_data.get('models_supported', 100)}+</div><div class='stat-label'>Models supported</div></div>", unsafe_allow_html=True)
 
-st.write("---")
+st.markdown("<br><hr style='border-color: #222;'><br>", unsafe_allow_html=True)
 
-# --- 5. CHAT SİSTEMİ (Hugging Face AI - Köhnə kod saxlanıldı) ---
-if "messages" not in st.session_state: 
+# --- 6. CHAT SİSTEMİ (TinyLlama Sürətli Model) ---
+if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Mesajları ekrana ver
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"], avatar="👨" if msg["role"] == "user" else "🐉"):
-        st.markdown(msg["content"])
+# Mesaj tarixçəsini render et
+for message in st.session_state.messages:
+    with st.chat_message(message["role"], avatar="👨" if message["role"] == "user" else "🐉"):
+        st.markdown(message["content"])
 
-# Yeni Mesaj
+# Giriş sahəsi
 if prompt := st.chat_input("Luser Ai 1.0 üçün bir əmr ver..."):
-    manage_stats(increment=True) # Hər mesajda sayğacı artır
+    # Stat artır
+    load_or_update_stats(increment=True)
+    
+    # İstifadəçi mesajı
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar="👨"): 
+    with st.chat_message("user", avatar="👨"):
         st.markdown(prompt)
     
+    # AI Cavabı
     with st.chat_message("assistant", avatar="🐉"):
-        with st.status("📡 Analiz edilir...", expanded=False):
-            API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill"
+        with st.status("📡 Analiz edilir...", expanded=False) as status:
+            # Sürətli TinyLlama modeli (Max 10 saniye timeout)
+            API_URL = "https://api-inference.huggingface.co/models/TinyLlama/TinyLlama-1.1B-Chat-v1.0"
             try:
-                r = requests.post(API_URL, json={"inputs": prompt}, timeout=10)
-                res = r.json()[0]['generated_text']
-            except: 
-                res = "Luser Ai: Hazırda serverlərdə bir az sıxlıq var, Patron. Amma sistem aktivdir!"
-        st.markdown(res)
-        st.session_state.messages.append({"role": "assistant", "content": res})
-
-# --- 6. FOOTER (Linklərin Hamısı Bura Yığıldı) ---
-st.markdown(f"""
-    <div class='footer-container'>
-        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 40px;'>
-            <div>
-                <p style='color:white; font-weight:bold;'>USE CASES</p>
-                <a class='footer-link' href='#'>Web apps</a>
-                <a class='footer-link' href='#'>Marketing sites</a>
-            </div>
-            <div>
-                <p style='color:white; font-weight:bold;'>COMMUNITY</p>
-                <a class='footer-link' href='https://instagram.com/lusergod' target='_blank'>Instagram</a>
-                <a class='footer-link' href='https://tiktok.com/@lusergod' target='_blank'>TikTok</a>
-                <a class='footer-link' href='https://discordapp.com/users/lusergod' target='_blank'>Discord (lusergod)</a>
-            </div>
-            <div>
-                <p style='color:white; font-weight:bold;'>COMPANY</p>
-                <a class='footer-link' href='#'>About Luser Ai</a>
-                <a class='footer-link' href='#'>Privacy Policy</a>
-            </div>
-        </div>
-        <div style='margin-top:40px; color:#444; font-size:0.8rem; text-align:center;'>
-            © 2026 Luser Ai OSS, Elmeddin Inc. | IP Address: {current_user_ip}
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
-# --- 7. ADMIN PANEL (Yalnız Sənin Üçün) ---
-if current_user_ip in ADMIN_IPS:
-    with st.sidebar:
-        st.markdown("<h2 style='color:#ff4500;'>👑 PATRON PANEL</h2>", unsafe_allow_html=True)
-        st.write(f"Vəziyyət: **Aktiv**")
-        if st.button("Söhbəti Təmizlə"): 
-            st.session_state.messages = []
-            st.rerun()
-        if st.button("Statistikaları Sıfırla"):
-            if os.path.exists(STATS_FILE): os.remove(STATS_FILE)
-            st.rerun()
+                payload = {
+                    "inputs": f"<|system|>\nYou are Luser Ai, a professional AI developed by Elmeddin. Be helpful and very concise. Response language: Azerbaijani/English.<|user|>\n{prompt}<|assistant|>\n",
+                    "parameters": {"max_new_tokens": 250, "temperature": 0.7
