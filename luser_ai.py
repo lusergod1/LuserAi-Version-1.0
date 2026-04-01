@@ -99,6 +99,98 @@ if prompt := st.chat_input("Luser Ai 1.0 üçün bir əmr ver..."):
                     full_response = "Bağlantı xətası! API Key-i yoxlayın."
             else:
                 full_response = "Sistem aktivdir, amma API Key daxil edilməyib."
+
+            import streamlit as st
+import os
+import time
+import openai
+
+# --- KONFİQURASİYA ---
+st.set_page_config(page_title="Luser Ai 1.0 Version", page_icon="🚀", layout="wide")
+
+# --- FULL DARK MODE & TARGARYEN CSS ---
+st.markdown("""
+    <style>
+    /* Bütün səhifəni qaralt */
+    .stApp {
+        background-color: #000000 !important;
+        background-image: radial-gradient(circle, #2a0000 0%, #000000 100%) !important;
+    }
+    
+    /* Yuxarıdakı ağ xətti və menyunu gizlə/qaralt */
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+
+    /* Yazı rəngləri */
+    .luser-glow {
+        font-size: 3rem;
+        font-weight: 900;
+        text-align: center;
+        color: #ff4500;
+        text-shadow: 0 0 20px #ff4500;
+        letter-spacing: 5px;
+        padding-top: 20px;
+    }
+
+    /* Chat giriş hissəsini qaralt */
+    .stChatInputContainer {
+        background-color: #0a0a0a !important;
+        border-top: 1px solid #ff4500 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- LOQO SİSTEMİ ---
+def find_logo():
+    image_folder = "images"
+    if os.path.exists(image_folder):
+        for file in os.listdir(image_folder):
+            if "luser" in file.lower():
+                return os.path.join(image_folder, file)
+    return None
+
+logo_path = find_logo()
+
+# --- ANA PANEL ---
+st.markdown("<div class='luser-glow'>LUSER AI 1.0 VERSION</div>", unsafe_allow_html=True)
+
+if logo_path:
+    st.image(logo_path, use_column_width=True)
+
+# --- AI SİSTEMİ ---
+client = None
+if "OPENAI_API_KEY" in st.secrets:
+    client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+if prompt := st.chat_input("Luser Ai 1.0 üçün bir əmr ver..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    with st.chat_message("assistant"):
+        if not client:
+            st.error("⚠️ API Key tapılmadı! Zəhmət olmasa Secrets bölməsinə əlavə edin.")
+        else:
+            with st.status("📡 Analiz edilir...", expanded=False):
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[{"role": "m["role"], "content": m["content"]} for m in st.session_state.messages]
+                    )
+                    full_res = response.choices[0].message.content
+                except Exception as e:
+                    full_res = f"Xəta baş verdi: {str(e)}"
+            
+            st.markdown(full_res)
+            st.session_state.messages.append({"role": "assistant", "content": full_res})
             
             status.update(label="✅ Analiz tamamlandı!", state="complete", expanded=False)
         
