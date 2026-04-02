@@ -438,7 +438,7 @@ if st.session_state.get("show_admin", False) and user_ip == MY_IP:
     st.markdown("<h3 style='color:var(--danger); margin-top:20px;'>🌍 Canlı İzləmə Sistemi (Secure Logs)</h3>", unsafe_allow_html=True)
             
             # Cədvəli tərs çeviririk ki, ən son daxil olan ən yuxarıda görünsün
-            st.dataframe(df.iloc[::-1].head(150), use_container_width=True) 
+     st.dataframe(df.iloc[::-1].head(150), use_container_width=True) 
             
             # Cədvəli Excel (CSV) kimi yükləmək üçün Patron Düyməsi
             csv = df.to_csv(index=False).encode('utf-8')
