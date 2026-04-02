@@ -233,9 +233,10 @@ waf.run_cloudflare_challenge(user_ip)
 # 3. DATABASE MANAGEMENT SYSTEM (DBMS)
 # =========================================================================================
 # (BÖLÜM 1 BURADA BİTİR. KOPYALA VƏ MƏNƏ "DAVAM ET" YAZ)class LocalDatabaseManager:
+   class LocalDatabaseManager:
     """JSON formatında lokal məlumat bazasını idarə edən Enterprise DBMS Sinifi"""
     
-    def __init__(self, db_path="visitor_logs_enterprise.json"):
+    def __init__(self, db_path="visitor_logs_enterprise.json"): 
         self.db_path = db_path
         self._initialize_session_states()
 
