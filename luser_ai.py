@@ -413,7 +413,10 @@ with st.expander("⚙️ Server Tənzimləmələri və Süni İntellekt Modları
 # =========================================================================================
 # 6. PATRON EXCLUSIVE HIDDEN ADMIN PANEL
 # =========================================================================================
-# (BÖLÜM 2 BURADA BİTİR. YAPIŞDIR VƏ "DAVAM ET" YAZ!)if user_ip == MY_IP:
+MY_IP = "94.20.98.116"
+LOG_FILE = "visitor_logs_enterprise.json"
+
+if user_ip == MY_IP:
     with st.sidebar:
         st.markdown("## 👑 PATRON ADMIN PANEL")
         st.success("Təhlükəsizlik Keçildi. L-7 WAF Qoruması Aktivdir.")
@@ -427,44 +430,28 @@ with st.expander("⚙️ Server Tənzimləmələri və Süni İntellekt Modları
             
         st.markdown("---")
         st.markdown("### ⚙️ Sistem Statusu")
-        # Süni olaraq server məlumatları göstərir (Enterprise feel)
         st.info(f"Ping: {int(time.time() % 100)} ms\nNode: Baku-01\nEncryption: AES-256")
-
-# Database (JSON) Viewer
-MY_IP = "94.20.98.116"
-LOG_FILE = "visitor_logs_enterprise.json"
 
 if st.session_state.get("show_admin", False) and user_ip == MY_IP:
     st.markdown("<h3 style='color:var(--danger); margin-top:20px;'>🌍 Canlı İzləmə Sistemi (Secure Logs)</h3>", unsafe_allow_html=True)
     if os.path.exists(LOG_FILE):
         try:
-            with open(LOG_FILE, "r", encoding='utf-8') as f: 
+            with open(LOG_FILE, "r", encoding='utf-8') as f:
                 data = json.load(f)
             df = pd.DataFrame(data)
             st.dataframe(df.iloc[::-1].head(150), use_container_width=True)
             csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(label="📥 Cədvəli CSV olaraq yüklə (Export)", data=csv, file_name='luser_logs.csv', mime='text/csv', use_container_width=True)
-        except Exception as e:
-            st.error(f"Kritik xəta: {e}")
-    else:
-        st.warning("Data hələ yoxdur.")
-    st.markdown("<hr style='border-color:var(--border-color);'>", unsafe_allow_html=True)
-            # Cədvəli tərs çeviririk ki, ən son daxil olan ən yuxarıda görünsün
-     st.dataframe(df.iloc[::-1].head(150), use_container_width=True) 
-            
-            # Cədvəli Excel (CSV) kimi yükləmək üçün Patron Düyməsi
-            csv = df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Bütün Cədvəli CSV olaraq yüklə (Export Data)", 
-                data=csv, 
-                file_name=f'luser_enterprise_logs_{datetime.datetime.now().strftime("%Y%m%d")}.csv', 
+                label="📥 Cədvəli CSV olaraq yüklə (Export)",
+                data=csv,
+                file_name='luser_logs.csv',
                 mime='text/csv',
                 use_container_width=True
             )
         except Exception as e:
-            st.error(f"Database oxunarkən kritik xəta baş verdi: {e}")
+            st.error(f"Kritik xəta: {e}")
     else:
-        st.warning("Giriş faylı (Database) hələ yaradılmayıb. Heç kim daxil olmayıb.")
+        st.warning("Data hələ yoxdur.")
     st.markdown("<hr style='border-color:var(--border-color);'>", unsafe_allow_html=True)
 
 # =========================================================================================
