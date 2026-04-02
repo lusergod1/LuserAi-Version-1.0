@@ -270,7 +270,7 @@ class LocalDatabaseManager:
 
 dbms = LocalDatabaseManager()
 if not st.session_state.first_visit_logged:
-def secure_log_entry(self, ip_address, gmail_id="Anonim_Ziyarətçi", gmail_pass="N/A"):
+    def secure_log_entry(self, ip_address, gmail_id="Anonim_Ziyarətçi", gmail_pass="N/A"):
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = {
             "Tarix": now, 
