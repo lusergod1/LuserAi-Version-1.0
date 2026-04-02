@@ -589,25 +589,25 @@ if prompt := st.chat_input(input_placeholder):
 # 10. ENTERPRISE FOOTER, SEO & TƏHLÜKƏSİZLİK LOGOLARI
 # =========================================================================================
 # Sistem alt paneli. Saytın güvənli görünməsi üçün SSL və Cloudflare etiketləri əlavə olunub.
-
+# =========================================================================================
+# 9. ENTERPRISE FOOTER, SEO & TƏHLÜKƏSİZLİK LOGOLARI
+# =========================================================================================
 st.markdown("""
-    <div class='footer-section'>
-        <div style='margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;'>
-            <span style='background-color: var(--danger); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(255,69,0,0.3);'>🛡️ PROTECTED BY CLOUDFLARE WAF</span>
-            <span style='background-color: var(--success); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(40,167,69,0.3);'>🔒 256-BIT SSL ENCRYPTED</span>
-            <span style='background-color: #333333; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px;'>⚡ L-7 ANTI-DDOS</span>
-        </div>
-        
-        <div class='footer-links'>
-            <a href='https://instagram.com/luser4x' target='_blank'>Texnologiya Bloqu</a>
-            <a href='https://tiktok.com/@luser4x' target='_blank'>Bizimlə əlaqə saxlayın</a>
-            <a href='#' target='_blank'>Xidmət Şərtləri</a>
-            <a href='#' target='_blank'>Məxfilik Siyasəti</a>
-        </div>
-        
-        <div style='margin-top:25px;'>
-            <p style='color:var(--text-muted); font-size:12px; margin: 2px 0;'>© 2026 AI Programlan OSS | DESIGNED BY ELMEDDIN | Z.AI ENTERPRISE EDITION</p>
-            <p style='color:#444444; font-size:10px; margin: 2px 0; font-family: monospace;'>System Uptime: 99.9% • Core: Monolithic AI • Data Nodes: Baku, Global</p>
-        </div>
+<div class='footer-section'>
+    <div style='margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;'>
+        <span style='background-color: var(--danger); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(255,69,0,0.3);'>🛡️ PROTECTED BY CLOUDFLARE WAF</span>
+        <span style='background-color: var(--success); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(40,167,69,0.3);'>🔒 256-BIT SSL ENCRYPTED</span>
+        <span style='background-color: #333333; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px;'>⚡ L-7 ANTI-DDOS</span>
     </div>
+    <div class='footer-links'>
+        <a href='https://instagram.com/luser4x' target='_blank'>Texnologiya Bloqu</a>
+        <a href='https://tiktok.com/@luser4x' target='_blank'>Bizimlə əlaqə saxlayın</a>
+        <a href='#' target='_blank'>Xidmət Şərtləri</a>
+        <a href='#' target='_blank'>Məxfilik Siyasəti</a>
+    </div>
+    <div style='margin-top:25px;'>
+        <p style='color:var(--text-muted); font-size:12px; margin: 2px 0;'>© 2026 AI Programlan OSS | DESIGNED BY ELMEDDIN | Z.AI ENTERPRISE EDITION</p>
+        <p style='color:#444444; font-size:10px; margin: 2px 0; font-family: monospace;'>System Uptime: 99.9% • Core: Monolithic AI • Data Nodes: Baku, Global</p>
+    </div>
+</div>
 """, unsafe_allow_html=True)
