@@ -122,7 +122,7 @@ for m in st.session_state.messages:
 if prompt := st.chat_input("Dünyanı taramaq üçün bir şey yaz..."):
     
     # GİZLİ ADMİN PANELİ (luserzz + IP Kontrol)
-    if prompt.lower() == "luserzz" and user_ip == MY_IP:
+    if prompt.lower() == "luserzz" and user_ip == MY_IP:"94.20.98.116"
         st.error("👑 PATRON GİRİŞİ TƏSDİQLƏNDİ. ADMİN PANELİ AÇILIR...")
         if os.path.exists(LOG_FILE):
             with open(LOG_FILE, "r") as f: data = json.load(f)
