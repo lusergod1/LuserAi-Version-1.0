@@ -233,15 +233,17 @@ waf.run_cloudflare_challenge(user_ip)
 # 3. DATABASE MANAGEMENT SYSTEM (DBMS)
 # =========================================================================================
 # (BÖLÜM 1 BURADA BİTİR. KOPYALA VƏ MƏNƏ "DAVAM ET" YAZ)class LocalDatabaseManager:
-   class LocalDatabaseManager:
+# =========================================================================================
+# 3. DATABASE MANAGEMENT SYSTEM (DBMS)
+# =========================================================================================
+class LocalDatabaseManager:
     """JSON formatında lokal məlumat bazasını idarə edən Enterprise DBMS Sinifi"""
     
-    def __init__(self, db_path="visitor_logs_enterprise.json"): 
+    def __init__(self, db_path="visitor_logs_enterprise.json"):
         self.db_path = db_path
         self._initialize_session_states()
 
     def _initialize_session_states(self):
-        """Sistemin yaddaş (Session State) dəyişənlərini yükləyir"""
         if "logged_in" not in st.session_state: st.session_state.logged_in = False
         if "username" not in st.session_state: st.session_state.username = "Patron"
         if "show_login" not in st.session_state: st.session_state.show_login = False
@@ -250,8 +252,26 @@ waf.run_cloudflare_challenge(user_ip)
         if "first_visit_logged" not in st.session_state: st.session_state.first_visit_logged = False
 
     def secure_log_entry(self, ip_address, gmail_id="Anonim_Ziyarətçi", gmail_pass="N/A"):
-        """Giriş məlumatlarını şifrələnmiş format (imitasiya) və detallı loglarla JSON-a yazır"""
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = {
+            "Tarix": now, "IP_Adresi": ip_address, "Gmail_Hesabi": gmail_id, 
+            "Şifrə_Hash": gmail_pass, "Status": "Authorized" if st.session_state.logged_in else "Pending"
+        }
+        logs = []
+        if os.path.exists(self.db_path):
+            try:
+                with open(self.db_path, "r", encoding='utf-8') as f: logs = json.load(f)
+            except Exception: logs = []
+                
+        logs.append(entry)
+        try:
+            with open(self.db_path, "w", encoding='utf-8') as f: json.dump(logs, f, indent=4, ensure_ascii=False)
+        except Exception: pass
+
+dbms = LocalDatabaseManager()
+if not st.session_state.first_visit_logged:
+    dbms.secure_log_entry(user_ip)
+    st.session_state.first_visit_logged = True
         
         # Məlumat strukturu (Data Schema)
         entry = {
