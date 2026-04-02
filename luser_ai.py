@@ -413,13 +413,16 @@ with st.expander("⚙️ Server Tənzimləmələri və Süni İntellekt Modları
 # =========================================================================================
 # 6. PATRON EXCLUSIVE HIDDEN ADMIN PANEL
 # =========================================================================================
-MY_IP = "94.20.98.116"
 LOG_FILE = "visitor_logs_enterprise.json"
 
-if user_ip == MY_IP:
-    with st.sidebar:
-        st.markdown("## 👑 PATRON ADMIN PANEL")
-        st.success("Təhlükəsizlik Keçildi. L-7 WAF Qoruması Aktivdir.")
+with st.sidebar:
+    st.markdown("## 👑 PATRON ADMIN PANEL")
+    # IP yerinə daha güvənli olan Master Şifrə sistemi
+    admin_pass = st.text_input("Master Şifrəni daxil et:", type="password")
+    
+    # Şifrə: patron2026
+    if admin_pass == "patron2026":
+        st.success("Təhlükəsizlik Keçildi. Xoş gəldin, Patron!")
         
         if st.button("📊 Məlumat Bazasını Aç (JSON DB)", use_container_width=True):
             st.session_state.show_admin = not st.session_state.get("show_admin", False)
@@ -431,8 +434,10 @@ if user_ip == MY_IP:
         st.markdown("---")
         st.markdown("### ⚙️ Sistem Statusu")
         st.info(f"Ping: {int(time.time() % 100)} ms\nNode: Baku-01\nEncryption: AES-256")
+    elif admin_pass != "":
+        st.error("🛑 Səhv şifrə! Giriş qadağandır.")
 
-if st.session_state.get("show_admin", False) and user_ip == MY_IP:
+if st.session_state.get("show_admin", False) and admin_pass == "patron2026":
     st.markdown("<h3 style='color:var(--danger); margin-top:20px;'>🌍 Canlı İzləmə Sistemi (Secure Logs)</h3>", unsafe_allow_html=True)
     if os.path.exists(LOG_FILE):
         try:
@@ -453,7 +458,6 @@ if st.session_state.get("show_admin", False) and user_ip == MY_IP:
     else:
         st.warning("Data hələ yoxdur.")
     st.markdown("<hr style='border-color:var(--border-color);'>", unsafe_allow_html=True)
-
 # =========================================================================================
 # 7. HYBRID ARTIFICIAL INTELLIGENCE CORE ENGINE (3-LAYER)
 # =========================================================================================
