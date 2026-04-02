@@ -3,4 +3,3 @@ requests
 gTTS
 duckduckgo-search
 pandas
-openai
